@@ -1,0 +1,92 @@
+bash
+#!/bin/bash
+
+echo "Mise à jour des paquets..."
+pkg update -y && pkg upgrade -y
+
+echo "Installation de Node.js..."
+pkg install nodejs -y
+
+echo "Création du dossier whatsapp-bot..."
+mkdir -p whatsapp-bot
+cd whatsapp-bot || exit
+
+echo "Initialisation du projet Node.js..."
+npm init -y
+
+echo "Installation des dépendances..."
+npm install @adiwajshing/baileys pino @hapi/boom
+
+echo "Création du fichier index.js..."
+cat > index.js << 'EOF'
+const { default: makeWASocket, useSingleFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@adiwajshing/baileys')
+const { Boom } = require('@hapi/boom')
+const P = require('pino')
+const fs = require('fs')
+
+const { state, saveState } = useSingleFileAuthState('./auth_info.json')
+
+async function startSock() {
+    const { version } = await fetchLatestBaileysVersion()
+    const sock = makeWASocket({
+        logger: P({ level: 'silent' }),
+        printQRInTerminal: true,
+        auth: state,
+        version
+    })
+
+    sock.ev.on('creds.update', saveState)
+  sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect } = update
+        if(connection === 'close') {
+            if((lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut) {
+                startSock()
+            } else {
+                console.log('Session déconnectée, supprime auth_info.json et reconnecte.')
+            }
+        } else if(connection === 'open') {
+            console.log('Connecté à WhatsApp!')
+        }
+    })
+
+    sock.ev.on('messages.upsert', async (m) => {
+        const msg = m.messages[0]
+        if(!msg.message || msg.key.fromMe) return
+        const from = msg.key.remoteJid
+
+        if(msg.message.conversation === 'pavé') {
+            const response = `✧═══════[ PAVÉ ]═══════✧
+
+ 🌀 DRESSEUR : [Nom]
+
+┣━━━━━━━━━━━━━━━━━━━━┫    
+  💬 :  [Lancer de Poké Ball]
+
+░░░░░░░░░░░░░░░░░░░░░
+
+   ⚔ Séquence 1 :
+  
+     ↔️  
+ 
+░░░░░░░░░░░░░░░░░░░░░
+
+   ⚔ Séquence 2 :
+           
+     ↔️ 
+
+✧═════[💥 Technique]════✧
+
+  🔄  [Nom de l’attaque]    
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+*_🔸𝒫𝑜𝓀𝑒́𝓶𝑜𝓷 𝒰𝓃𝒾𝓉𝑒🎴🔸_*`
+
+            await sock.sendMessage(from, { text: response })
+            await sock.sendMessage(from, { react: { text: '🎮', key: msg.key } })
+        }
+    })
+}
+
+startSock()
+EOF
