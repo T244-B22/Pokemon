@@ -1,0 +1,16 @@
+
+  "name": "pokemon-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "Bot Pokémon WhatsApp avec Baileys",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["whatsapp", "bot", "baileys", "pokemon"],
+  "author": "Wasuke ❄️ D Kamado VII",
+  "license": "MIT",
+  "dependencies": {
+    "@adiwajshing/baileys": "^6.5.0",
+    "@hapi/boom": "^10.0.0"
+  }
+}
