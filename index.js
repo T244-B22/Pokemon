@@ -1,4 +1,3 @@
-
 const { makeWASocket, useSingleFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
 const { Boom } = require("@hapi/boom");
 const { default: P } = require("pino");
