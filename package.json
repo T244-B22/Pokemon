@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "author": "BY WASUKE ❄️ D KAMADO VII",
+  "author": "Orochimaru",
   "license": "MIT",
   "dependencies": {
     "@adiwajshing/baileys": "^5.0.0",
